@@ -33,7 +33,7 @@ module "compute" {
     ami_owners = var.ami_owners
     ami_name_pattern = var.ami_name_pattern
     instances = var.instances
-    security_groups = var.security_groups
+    bastion_allowed_cidrs = var.bastion_allowed_cidrs
     public_key_path = var.public_key_path
     subnets_groups = module.network.subnets_groups
 }

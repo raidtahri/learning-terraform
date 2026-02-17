@@ -1,41 +1,65 @@
-# aws_security_group called a resource block and name, vpc_id called arguments
-resource "aws_security_group" "this" {
-    for_each = var.security_groups
-    name   = "${var.full_name}-${each.key}-sg"
-    vpc_id = var.vpc_id
-    dynamic "ingress" {
-      for_each = each.value.ingress
-      #now we are iterating over list of objects inside map of objects
-      #now we have each.value foot the whole sg config and ingress.value for each ingress rule
-      content {
-        from_port   = ingress.value.from_port
-        to_port     = ingress.value.to_port
-        protocol    = ingress.value.protocol
-        cidr_blocks = ingress.value.cidr_blocks
-}
-    }
-    dynamic "egress" {
-      for_each = length(each.value.egress) > 0 ? each.value.egress : [
-        {
-          from_port   = 0
-          to_port     = 0
-          protocol    = "-1"
-          cidr_blocks = ["0.0.0.0/0"]
-        }
-      ]
-      content {
-        from_port   = egress.value.from_port
-        to_port     = egress.value.to_port
-        protocol    = egress.value.protocol
-        cidr_blocks = egress.value.cidr_blocks
-}
-    }
+resource "aws_security_group" "bastion" {
+  name   = "${var.full_name}-bastion-sg"
+  vpc_id = var.vpc_id
 
-    tags = merge(
-      {
-       Name = "${var.full_name}-${each.key}-sg"
-      },
-      var.base_tags)
+  ingress {
+    description = "SSH from my IP"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = var.bastion_allowed_cidrs
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = merge(
+    {
+      Name = "${var.full_name}-bastion-sg"
+      Tier = "bastion"
+    },
+    var.base_tags
+  )
+}
+
+resource "aws_security_group" "app" {
+  name   = "${var.full_name}-app-sg"
+  vpc_id = var.vpc_id
+
+  ingress {
+    description     = "App port from Bastion"
+    from_port       = 8080
+    to_port         = 8080
+    protocol        = "tcp"
+    security_groups = [aws_security_group.bastion.id]
+  }
+
+  ingress {
+    description     = "SSH from Bastion"
+    from_port       = 22
+    to_port         = 22
+    protocol        = "tcp"
+    security_groups = [aws_security_group.bastion.id]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = merge(
+    {
+      Name = "${var.full_name}-app-sg"
+      Tier = "app"
+    },
+    var.base_tags
+  )
 }
 
 data "aws_ami" "this" {
