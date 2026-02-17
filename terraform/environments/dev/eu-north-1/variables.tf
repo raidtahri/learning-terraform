@@ -50,15 +50,25 @@ variable "public_key_path" {
      type = string
 }
 
-variable "instances" {
-     type = map(object({
-         instance_type        = string
-         subnet_role          = string
-         iam_instance_profile = optional(string)
-         script_name          = optional(string)
-         extra_tags           = optional(map(string), {})
-     }))
- }
+variable "app_instances" {
+    type = map(object({#object when each element has diffirent types -string, boolean, number,etc.-
+        instance_type        = string
+        subnet_role          = string
+        iam_instance_profile = optional(string)
+        script_name          = optional(string)
+        extra_tags           = optional(map(string), {}) #string when each element has same type -string-
+    }))
+}
+variable "bastion_instances" {
+    type = map(object({#object when each element has diffirent types -string, boolean, number,etc.-
+        instance_type        = string
+        subnet_role          = string
+        subnet_az            = string
+        iam_instance_profile = optional(string)
+        script_name          = optional(string)
+        extra_tags           = optional(map(string), {}) #string when each element has same type -string-
+    }))
+}
 
  variable "ami_owners" {
      type = list(string)

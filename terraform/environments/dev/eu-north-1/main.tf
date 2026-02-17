@@ -32,7 +32,8 @@ module "compute" {
     vpc_id = module.network.vpc_id
     ami_owners = var.ami_owners
     ami_name_pattern = var.ami_name_pattern
-    instances = var.instances
+    app_instances = var.app_instances
+    bastion_instances = var.bastion_instances
     bastion_allowed_cidrs = var.bastion_allowed_cidrs
     public_key_path = var.public_key_path
     subnets_groups = module.network.subnets_groups
