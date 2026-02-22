@@ -18,7 +18,7 @@ module "network" {
     public_subnets = var.public_subnets
     nat_eips = var.nat_eips
     bastion_eips = var.bastion_eips
-    server_infos = module.compute.server_infos
+    bastion_instances_info = module.compute.bastion_instances_info
     availability_zones = var.availability_zones
     private_subnets = var.private_subnets
 /*Module argument names must exactly match the variable names in the child module.

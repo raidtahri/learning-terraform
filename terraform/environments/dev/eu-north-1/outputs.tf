@@ -14,13 +14,13 @@ output "private_db_subnet_ids" {
 }
 
 output "bastion1_server_infos" {
-  value = module.compute.server_infos["bastion1"]
+  value = module.compute.bastion_instances_info["bastion1"]
 }
 output "app1_server_infos" {
-  value = module.compute.server_infos["app1"]
+  value = module.compute.app_instances_info["app1"]
 }
 output "app2_server_infos" {
-  value = module.compute.server_infos["app2"]
+  value = module.compute.app_instances_info["app2"]
 }
 
 output "bastion_eip" {

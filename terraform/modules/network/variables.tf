@@ -28,7 +28,7 @@ variable "bastion_eips" {
     }))
 }
 
-variable "server_infos" {
+variable "bastion_instances_info" {
     description = "Map of all instances_info output from compute modue"
     type = map(object({
         id         = string

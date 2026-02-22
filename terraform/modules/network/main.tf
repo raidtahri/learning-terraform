@@ -56,7 +56,7 @@ resource "aws_eip" "bastion" {
 }
 
 resource "aws_eip_association" "bastion" {
-  for_each = {for name, infos in var.server_infos : name => infos if startswith(name, "bastion")}
+  for_each = {for name, infos in var.bastion_instances_info : name => infos if startswith(name, "bastion")}
   allocation_id = aws_eip.bastion[each.key].id
   instance_id   = each.value.id
 }
