@@ -98,6 +98,7 @@ resource "aws_instance" "bastion" {
   instance_type               = each.value.instance_type
   #the problem with the approch below is that it works only if count.index < number of subnets in the role, otherwise we will get an error index out of range, use modulo to safely iterate over subnets
   subnet_id                   = var.subnets_groups[each.value.subnet_role][each.value.subnet_az]
+  vpc_security_group_ids      = [aws_security_group.bastion.id]
   iam_instance_profile        = each.value.iam_instance_profile
   key_name                    = aws_key_pair.this.key_name
 /*or simply key_name   = "myapp-key" */
@@ -117,12 +118,14 @@ resource "aws_instance" "bastion" {
     )
 }
 
+
+
 resource "aws_instance" "app" {
   for_each                    = var.app_instances
   ami                         = data.aws_ami.this.id
   instance_type               = each.value.instance_type
   #the problem with the approch below is that it works only if count.index < number of subnets in the role, otherwise we will get an error index out of range, use modulo to safely iterate over subnets
-  subnet_id                   = element(var.subnets_groups[each.value.subnet_role], index(keys(var.app_instances), each.key))
+  subnet_id                   = var.subnets_groups[each.value.subnet_role][each.value.subnet_az]
   vpc_security_group_ids      = [aws_security_group.app.id] 
   iam_instance_profile        = each.value.iam_instance_profile
   key_name                    = aws_key_pair.this.key_name
