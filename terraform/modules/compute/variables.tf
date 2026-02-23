@@ -1,5 +1,5 @@
 variable "full_name" {
-    type = string
+  type = string
 }
 
 variable "vpc_id" {
@@ -11,43 +11,43 @@ variable "bastion_allowed_cidrs" {
 
 
 variable "base_tags" {
-    type = map(string)
+  type = map(string)
 }
 
 variable "public_key_path" {
-    type = string
+  type = string
 }
 variable "app_instances" {
-    type = map(object({#object when each element has diffirent types -string, boolean, number,etc.-
-        instance_type        = string
-        subnet_role          = string
-        subnet_az            = string
-        iam_instance_profile = optional(string)
-        script_name          = optional(string)
-        extra_tags           = optional(map(string), {}) #string when each element has same type -string-
-    }))
+  type = map(object({ #object when each element has diffirent types -string, boolean, number,etc.-
+    instance_type        = string
+    subnet_role          = string
+    subnet_az            = string
+    iam_instance_profile = optional(string)
+    script_name          = optional(string)
+    extra_tags           = optional(map(string), {}) #string when each element has same type -string-
+  }))
 }
 variable "bastion_instances" {
-    type = map(object({#object when each element has diffirent types -string, boolean, number,etc.-
-        instance_type        = string
-        subnet_role          = string
-        subnet_az            = string
-        iam_instance_profile = optional(string)
-        script_name          = optional(string)
-        extra_tags           = optional(map(string), {}) #string when each element has same type -string-
-    }))
+  type = map(object({ #object when each element has diffirent types -string, boolean, number,etc.-
+    instance_type        = string
+    subnet_role          = string
+    subnet_az            = string
+    iam_instance_profile = optional(string)
+    script_name          = optional(string)
+    extra_tags           = optional(map(string), {}) #string when each element has same type -string-
+  }))
 }
 
 variable "ami_owners" {
-    type = list(string)
+  type = list(string)
 }
 
 variable "ami_name_pattern" {
-    type = string
+  type = string
 }
 variable "subnets_groups" {
-    description = "subnets grouped by role from natwork module"
-    type = map(map(string))
+  description = "subnets grouped by role from natwork module"
+  type        = map(map(string))
 }
 
 

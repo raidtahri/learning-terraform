@@ -1,6 +1,6 @@
 output "vpc_id" {
-   description = "The ID of the VPC"
-   value       = aws_vpc.this.id
+  description = "The ID of the VPC"
+  value       = aws_vpc.this.id
 }
 
 output "subnets_groups" {
@@ -25,7 +25,7 @@ output "subnets_groups" {
 }
 
 output "bastion_eip" {
-   value = {for k, v in aws_eip.bastion : k => v.public_ip}
+  value = { for k, v in aws_eip.bastion : k => v.public_ip }
 }
 
 /*subnets_group is a name, choose any name you want, 

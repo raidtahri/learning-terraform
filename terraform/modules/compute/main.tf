@@ -93,56 +93,56 @@ resource "aws_key_pair" "this" {
 }
 
 resource "aws_instance" "bastion" {
-  for_each                    = var.bastion_instances
-  ami                         = data.aws_ami.this.id
-  instance_type               = each.value.instance_type
+  for_each      = var.bastion_instances
+  ami           = data.aws_ami.this.id
+  instance_type = each.value.instance_type
   #the problem with the approch below is that it works only if count.index < number of subnets in the role, otherwise we will get an error index out of range, use modulo to safely iterate over subnets
-  subnet_id                   = var.subnets_groups[each.value.subnet_role][each.value.subnet_az]
-  vpc_security_group_ids      = [aws_security_group.bastion.id]
-  iam_instance_profile        = each.value.iam_instance_profile
-  key_name                    = aws_key_pair.this.key_name
-/*or simply key_name   = "myapp-key" */
-  user_data = each.value.script_name !=  null ? file("${path.module}/scripts/${each.value.script_name}") : null
+  subnet_id              = var.subnets_groups[each.value.subnet_role][each.value.subnet_az]
+  vpc_security_group_ids = [aws_security_group.bastion.id]
+  iam_instance_profile   = each.value.iam_instance_profile
+  key_name               = aws_key_pair.this.key_name
+  /*or simply key_name   = "myapp-key" */
+  user_data                   = each.value.script_name != null ? file("${path.module}/scripts/${each.value.script_name}") : null
   associate_public_ip_address = true #override map_public_ip_on_launch = true in aws_subnet.public to ensure bastion always gets a public IP even if launched in a subnet that doesnt auto-assign public IPs
   lifecycle {
-    create_before_destroy     = true
-    ignore_changes            = [ami]
+    create_before_destroy = true
+    ignore_changes        = [ami]
   }
 
-  tags                        = merge( 
-  {
-  Name = "${var.full_name}-${each.key}"
-  AZ = each.value.subnet_az
+  tags = merge(
+    {
+      Name = "${var.full_name}-${each.key}"
+      AZ   = each.value.subnet_az
     },
     var.base_tags,
     each.value.extra_tags
-    )
+  )
 }
 
 
 
 resource "aws_instance" "app" {
-  for_each                    = var.app_instances
-  ami                         = data.aws_ami.this.id
-  instance_type               = each.value.instance_type
+  for_each      = var.app_instances
+  ami           = data.aws_ami.this.id
+  instance_type = each.value.instance_type
   #the problem with the approch below is that it works only if count.index < number of subnets in the role, otherwise we will get an error index out of range, use modulo to safely iterate over subnets
-  subnet_id                   = var.subnets_groups[each.value.subnet_role][each.value.subnet_az]
-  vpc_security_group_ids      = [aws_security_group.app.id] 
-  iam_instance_profile        = each.value.iam_instance_profile
-  key_name                    = aws_key_pair.this.key_name
-/*or simply key_name   = "myapp-key" */
-user_data = each.value.script_name !=  null ? file("${path.module}/scripts/${each.value.script_name}") : null
+  subnet_id              = var.subnets_groups[each.value.subnet_role][each.value.subnet_az]
+  vpc_security_group_ids = [aws_security_group.app.id]
+  iam_instance_profile   = each.value.iam_instance_profile
+  key_name               = aws_key_pair.this.key_name
+  /*or simply key_name   = "myapp-key" */
+  user_data = each.value.script_name != null ? file("${path.module}/scripts/${each.value.script_name}") : null
   lifecycle {
-    create_before_destroy     = true
-    ignore_changes            = [ami]
+    create_before_destroy = true
+    ignore_changes        = [ami]
   }
 
-  tags                        = merge( 
-  {
-  Name = "${var.full_name}-${each.key}"
-  AZ = each.value.subnet_az
+  tags = merge(
+    {
+      Name = "${var.full_name}-${each.key}"
+      AZ   = each.value.subnet_az
     },
     var.base_tags,
     each.value.extra_tags
-    )
+  )
 }
