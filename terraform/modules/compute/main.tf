@@ -111,7 +111,8 @@ resource "aws_instance" "bastion" {
 
   tags                        = merge( 
   {
-  Name: "${var.full_name}-${each.key}"
+  Name = "${var.full_name}-${each.key}"
+  AZ = each.value.subnet_az
     },
     var.base_tags,
     each.value.extra_tags
@@ -138,7 +139,8 @@ user_data = each.value.script_name !=  null ? file("${path.module}/scripts/${eac
 
   tags                        = merge( 
   {
-  Name: "${var.full_name}-${each.key}"
+  Name = "${var.full_name}-${each.key}"
+  AZ = each.value.subnet_az
     },
     var.base_tags,
     each.value.extra_tags

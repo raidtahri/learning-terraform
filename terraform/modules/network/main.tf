@@ -22,7 +22,7 @@ resource "aws_eip" "nat" {
     for_each   = var.nat_eips
     domain     = "vpc"
     tags       = merge(
-        {Name: "${var.full_name}-eip-${each.key}"
+        {Name = "${var.full_name}-eip-${each.key}"
          Role = each.key
          AZ = each.value.az},
     var.base_tags,
@@ -37,7 +37,8 @@ resource "aws_nat_gateway" "this" {
     allocation_id    = aws_eip.nat[each.key].id
     subnet_id        = aws_subnet.public[each.value.az].id
     tags             = merge(
-        {Name: "${var.full_name}-nat-gw"},
+        {Name = "${var.full_name}-nat-gw"
+         AZ = each.value.az},
         var.base_tags
     )
 }
@@ -47,7 +48,7 @@ resource "aws_eip" "bastion" {
     for_each   = var.bastion_eips
     domain     = "vpc"
     tags       = merge(
-        {Name: "${var.full_name}-${each.key}-eip"
+        {Name = "${var.full_name}-${each.key}-eip"
          Role = "bastion"
          AZ = each.value.az},
     var.base_tags,
@@ -68,7 +69,8 @@ resource "aws_subnet" "public" {
     availability_zone       = each.key
     map_public_ip_on_launch = true # auto-assign public IP to all instances launched in this subnet
     tags                    = merge({
-        Name = "${var.full_name}-public-${each.key}"
+        Name = "${var.full_name}-public"
+        AZ = each.key
         Type = "Public"
     },
     var.base_tags,
@@ -84,7 +86,7 @@ resource "aws_route_table" "public" {
    }
 */
     tags = merge({
-       Name: "${var.full_name}-public-rt"
+       Name = "${var.full_name}-public-rt"
        },
        var.base_tags
     )
@@ -113,6 +115,7 @@ resource "aws_subnet" "private" {
     availability_zone       = each.value.availability_zone
     tags                    = merge ({
       Name = "${var.full_name}-private-${each.key}"
+      AZ = each.value.availability_zone
       Type = "Private"
     },
       var.base_tags
@@ -129,7 +132,7 @@ resource "aws_route_table" "private" {
    }*/
 
     tags = merge(
-       {Name: "${var.full_name}-private-rt"},
+       {Name = "${var.full_name}-${each.key}-private-rt"},
        var.base_tags
     )
 }
