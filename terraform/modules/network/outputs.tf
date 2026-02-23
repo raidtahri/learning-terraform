@@ -1,19 +1,31 @@
 output "vpc_id" {
-   description = "The ID of the VPC"
-   value       = aws_vpc.this.id
+  description = "The ID of the VPC"
+  value       = aws_vpc.this.id
 }
 
 output "subnets_groups" {
-  description = "A map of subnet groups with their corresponding subnet IDs"
   value = {
-   public = values(aws_subnet.public)[*].id #values(aws_subnet.public) returns just the values of that map (ignoring keys).
-   app = [for k, v in aws_subnet.private : v.id if startswith(k, "app-")]
-   db = [for k, v in aws_subnet.private : v.id if startswith(k, "db-")]
-   }
+    public = {
+      for k, v in aws_subnet.public :
+      v.availability_zone => v.id
+    }
+
+    app = {
+      for k, v in aws_subnet.private :
+      v.availability_zone => v.id
+      if startswith(k, "app-")
+    }
+
+    db = {
+      for k, v in aws_subnet.private :
+      v.availability_zone => v.id
+      if startswith(k, "db-")
+    }
+  }
 }
 
 output "bastion_eip" {
-   value = values(aws_eip.bastion)[*].public_ip
+  value = { for k, v in aws_eip.bastion : k => v.public_ip }
 }
 
 /*subnets_group is a name, choose any name you want, 

@@ -1,41 +1,65 @@
-# aws_security_group called a resource block and name, vpc_id called arguments
-resource "aws_security_group" "this" {
-    for_each = var.security_groups
-    name   = "${var.full_name}-${each.key}-sg"
-    vpc_id = var.vpc_id
-    dynamic "ingress" {
-      for_each = each.value.ingress
-      #now we are iterating over list of objects inside map of objects
-      #now we have each.value foot the whole sg config and ingress.value for each ingress rule
-      content {
-        from_port   = ingress.value.from_port
-        to_port     = ingress.value.to_port
-        protocol    = ingress.value.protocol
-        cidr_blocks = ingress.value.cidr_blocks
-}
-    }
-    dynamic "egress" {
-      for_each = length(each.value.egress) > 0 ? each.value.egress : [
-        {
-          from_port   = 0
-          to_port     = 0
-          protocol    = "-1"
-          cidr_blocks = ["0.0.0.0/0"]
-        }
-      ]
-      content {
-        from_port   = egress.value.from_port
-        to_port     = egress.value.to_port
-        protocol    = egress.value.protocol
-        cidr_blocks = egress.value.cidr_blocks
-}
-    }
+resource "aws_security_group" "bastion" {
+  name   = "${var.full_name}-bastion-sg"
+  vpc_id = var.vpc_id
 
-    tags = merge(
-      {
-       Name = "${var.full_name}-${each.key}-sg"
-      },
-      var.base_tags)
+  ingress {
+    description = "SSH from my IP"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = var.bastion_allowed_cidrs
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = merge(
+    {
+      Name = "${var.full_name}-bastion-sg"
+      Tier = "bastion"
+    },
+    var.base_tags
+  )
+}
+
+resource "aws_security_group" "app" {
+  name   = "${var.full_name}-app-sg"
+  vpc_id = var.vpc_id
+
+  ingress {
+    description     = "App port from Bastion"
+    from_port       = 8080
+    to_port         = 8080
+    protocol        = "tcp"
+    security_groups = [aws_security_group.bastion.id]
+  }
+
+  ingress {
+    description     = "SSH from Bastion"
+    from_port       = 22
+    to_port         = 22
+    protocol        = "tcp"
+    security_groups = [aws_security_group.bastion.id]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = merge(
+    {
+      Name = "${var.full_name}-app-sg"
+      Tier = "app"
+    },
+    var.base_tags
+  )
 }
 
 data "aws_ami" "this" {
@@ -68,27 +92,57 @@ resource "aws_key_pair" "this" {
   public_key = file(var.public_key_path)
 }
 
-resource "aws_instance" "this" {
-  for_each                    = var.instances
-  ami                         = data.aws_ami.this.id
-  instance_type               = each.value.instance_type
+resource "aws_instance" "bastion" {
+  for_each      = var.bastion_instances
+  ami           = data.aws_ami.this.id
+  instance_type = each.value.instance_type
   #the problem with the approch below is that it works only if count.index < number of subnets in the role, otherwise we will get an error index out of range, use modulo to safely iterate over subnets
-  subnet_id                   = element(var.subnets_groups[each.value.subnet_role], index([for k, v in var.instances : k if v.subnet_role == each.value.subnet_role], each.key)) 
-  vpc_security_group_ids      = [aws_security_group.this[each.value.subnet_role].id] 
-  iam_instance_profile        = each.value.iam_instance_profile
-  key_name                    = aws_key_pair.this.key_name
-/*or simply key_name   = "myapp-key" */
-user_data = each.value.script_name !=  null ? file("${path.module}/scripts/${each.value.script_name}") : null
+  subnet_id              = var.subnets_groups[each.value.subnet_role][each.value.subnet_az]
+  vpc_security_group_ids = [aws_security_group.bastion.id]
+  iam_instance_profile   = each.value.iam_instance_profile
+  key_name               = aws_key_pair.this.key_name
+  /*or simply key_name   = "myapp-key" */
+  user_data                   = each.value.script_name != null ? file("${path.module}/scripts/${each.value.script_name}") : null
+  associate_public_ip_address = true #override map_public_ip_on_launch = true in aws_subnet.public to ensure bastion always gets a public IP even if launched in a subnet that doesnt auto-assign public IPs
   lifecycle {
-    create_before_destroy     = true
-    ignore_changes            = [ami]
+    create_before_destroy = true
+    ignore_changes        = [ami]
   }
 
-  tags                        = merge( 
-  {
-  Name: "${var.full_name}-${each.key}"
+  tags = merge(
+    {
+      Name = "${var.full_name}-${each.key}"
+      AZ   = each.value.subnet_az
     },
     var.base_tags,
     each.value.extra_tags
-    )
+  )
+}
+
+
+
+resource "aws_instance" "app" {
+  for_each      = var.app_instances
+  ami           = data.aws_ami.this.id
+  instance_type = each.value.instance_type
+  #the problem with the approch below is that it works only if count.index < number of subnets in the role, otherwise we will get an error index out of range, use modulo to safely iterate over subnets
+  subnet_id              = var.subnets_groups[each.value.subnet_role][each.value.subnet_az]
+  vpc_security_group_ids = [aws_security_group.app.id]
+  iam_instance_profile   = each.value.iam_instance_profile
+  key_name               = aws_key_pair.this.key_name
+  /*or simply key_name   = "myapp-key" */
+  user_data = each.value.script_name != null ? file("${path.module}/scripts/${each.value.script_name}") : null
+  lifecycle {
+    create_before_destroy = true
+    ignore_changes        = [ami]
+  }
+
+  tags = merge(
+    {
+      Name = "${var.full_name}-${each.key}"
+      AZ   = each.value.subnet_az
+    },
+    var.base_tags,
+    each.value.extra_tags
+  )
 }
