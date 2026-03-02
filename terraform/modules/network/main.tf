@@ -67,7 +67,7 @@ resource "aws_subnet" "public" {
   vpc_id                  = aws_vpc.this.id
   cidr_block              = each.value.cidr_block
   availability_zone       = each.key
-  map_public_ip_on_launch = true # auto-assign public IP to all instances launched in this subnet
+  map_public_ip_on_launch = false # auto-assign public IP to all instances launched in this subnet
   tags = merge({
     Name = "${var.full_name}-public"
     AZ   = each.key

@@ -103,7 +103,7 @@ resource "aws_instance" "bastion" {
   key_name               = aws_key_pair.this.key_name
   /*or simply key_name   = "myapp-key" */
   user_data                   = each.value.script_name != null ? file("${path.module}/scripts/${each.value.script_name}") : null
-  associate_public_ip_address = true #override map_public_ip_on_launch = true in aws_subnet.public to ensure bastion always gets a public IP even if launched in a subnet that doesnt auto-assign public IPs
+  #associate_public_ip_address = false #override map_public_ip_on_launch = true in aws_subnet.public to ensure bastion always gets a public IP even if launched in a subnet that doesnt auto-assign public IPs
   lifecycle {
     create_before_destroy = true
     ignore_changes        = [ami]
