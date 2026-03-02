@@ -144,7 +144,7 @@ resource "aws_route" "private_internet_access" {
   for_each               = var.nat_eips
   route_table_id         = aws_route_table.private[each.value.az].id
   destination_cidr_block = "0.0.0.0/0"
-  gateway_id             = aws_nat_gateway.this[each.key].id
+  nat_gateway_id         = aws_nat_gateway.this[each.key].id
 }
 
 resource "aws_route_table_association" "private" {
