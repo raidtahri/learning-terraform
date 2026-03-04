@@ -27,5 +27,7 @@ output "bastion_eip" {
   value = module.network.bastion_eip
 }
 
-
+output "bastion_security_group_id" {
+  value = module.compute.bastion_security_group_id
+}
 
