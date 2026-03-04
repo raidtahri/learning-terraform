@@ -46,9 +46,6 @@ variable "private_subnets" {
 variable "bastion_allowed_cidrs" {
   type = list(string)
 }
-variable "public_key_path" {
-  type = string
-}
 
 variable "app_instances" {
   type = map(object({ #object when each element has diffirent types -string, boolean, number,etc.-
@@ -101,4 +98,8 @@ variable "root_volume_size" {
   description = "Size of the root EBS volume in GB"
   type        = number
   default     = 30
+}
+variable "public_key_path" {
+  description = "Path to the public key file for SSH access"
+  type        = string
 }

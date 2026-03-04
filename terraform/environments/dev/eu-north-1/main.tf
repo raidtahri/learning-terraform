@@ -10,6 +10,13 @@ locals {
   }
 }
 
+module "bootstrap" {
+  source            = "../../../bootstrap/"
+  full_name         = local.full_name
+  base_tags         = local.base_tags
+  public_key_path   = var.public_key_path
+}
+
 module "network" {
   source                 = "../../../modules/network/"
   vpc_cidr_block         = var.vpc_cidr_block
@@ -35,8 +42,8 @@ module "compute" {
   app_instances         = var.app_instances
   bastion_instances     = var.bastion_instances
   bastion_allowed_cidrs = var.bastion_allowed_cidrs
-  public_key_path       = var.public_key_path
   subnets_groups        = module.network.subnets_groups
+  key_name              = module.bootstrap.key_name
 }
 
 module "jenkins" {
@@ -48,7 +55,7 @@ module "jenkins" {
   jenkins_ami_name_pattern = var.jenkins_ami_name_pattern
   jenkins_instances        = var.jenkins_instances
   bastion_sg_id            = module.compute.bastion_security_group_id
-  public_key_path          = var.public_key_path
   subnets_groups           = module.network.subnets_groups
   root_volume_size         = var.root_volume_size
+  key_name                 = module.bootstrap.key_name
 }

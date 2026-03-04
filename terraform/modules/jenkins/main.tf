@@ -57,11 +57,6 @@ data "aws_ami" "this" {
   }
 }
 
-resource "aws_key_pair" "this" {
-  key_name   = "${var.full_name}-key"
-  public_key = file(var.public_key_path)
-}
-
 resource "aws_instance" "jenkins" {
   for_each      = var.jenkins_instances
   ami           = data.aws_ami.this.id
@@ -70,7 +65,7 @@ resource "aws_instance" "jenkins" {
   subnet_id              = var.subnets_groups[each.value.subnet_role][each.value.subnet_az]
   vpc_security_group_ids = [aws_security_group.this.id]
   iam_instance_profile   = each.value.iam_instance_profile
-  key_name               = aws_key_pair.this.key_name
+  key_name               = var.key_name
   /*or simply key_name   = "myapp-key" */
   user_data = each.value.script_name != null ? file("${path.module}/scripts/${each.value.script_name}") : null
   root_block_device {

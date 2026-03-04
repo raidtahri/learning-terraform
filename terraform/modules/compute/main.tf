@@ -86,12 +86,6 @@ data "aws_ami" "this" {
     values = ["x86_64"]
   }
 }
-
-resource "aws_key_pair" "this" {
-  key_name   = "${var.full_name}-key"
-  public_key = file(var.public_key_path)
-}
-
 resource "aws_instance" "bastion" {
   for_each      = var.bastion_instances
   ami           = data.aws_ami.this.id
@@ -100,9 +94,9 @@ resource "aws_instance" "bastion" {
   subnet_id              = var.subnets_groups[each.value.subnet_role][each.value.subnet_az]
   vpc_security_group_ids = [aws_security_group.bastion.id]
   iam_instance_profile   = each.value.iam_instance_profile
-  key_name               = aws_key_pair.this.key_name
+  key_name               = var.key_name
   /*or simply key_name   = "myapp-key" */
-  user_data                   = each.value.script_name != null ? file("${path.module}/scripts/${each.value.script_name}") : null
+  user_data = each.value.script_name != null ? file("${path.module}/scripts/${each.value.script_name}") : null
   #associate_public_ip_address = false #override map_public_ip_on_launch = true in aws_subnet.public to ensure bastion always gets a public IP even if launched in a subnet that doesnt auto-assign public IPs
   lifecycle {
     create_before_destroy = true
@@ -129,7 +123,7 @@ resource "aws_instance" "app" {
   subnet_id              = var.subnets_groups[each.value.subnet_role][each.value.subnet_az]
   vpc_security_group_ids = [aws_security_group.app.id]
   iam_instance_profile   = each.value.iam_instance_profile
-  key_name               = aws_key_pair.this.key_name
+  key_name               = var.key_name
   /*or simply key_name   = "myapp-key" */
   user_data = each.value.script_name != null ? file("${path.module}/scripts/${each.value.script_name}") : null
   lifecycle {

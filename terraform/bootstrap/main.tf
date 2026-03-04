@@ -1,4 +1,5 @@
 # bootstrap include:
+# key pair
 # Bucket
 # Versioning
 # Encryption
@@ -7,6 +8,14 @@
 # DynamoDB lock table
 # prevent_destroy
 
+resource "aws_key_pair" "this" {
+  key_name   = "${var.full_name}-key"
+  public_key = file(var.public_key_path)
+  tags = merge (
+    {Name = "${var.full_name}-key"},
+    var.base_tags
+  )
+  }
 resource "aws_s3_bucket" "tf_state" {
   bucket = "learning-terraform-state"
   # Versioning is managed with a separate resource (aws_s3_bucket_versioning)
