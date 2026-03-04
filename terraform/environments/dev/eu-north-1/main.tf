@@ -38,3 +38,16 @@ module "compute" {
   public_key_path       = var.public_key_path
   subnets_groups        = module.network.subnets_groups
 }
+
+module "jenkins" {
+  source                   = "../../../modules/jenkins/"
+  full_name                = local.full_name
+  base_tags                = local.base_tags
+  vpc_id                   = module.network.vpc_id
+  jenkins_ami_owners       = var.jenkins_ami_owners
+  jenkins_ami_name_pattern = var.jenkins_ami_name_pattern
+  jenkins_instances        = var.jenkins_instances
+  bastion_sg_id            = module.compute.bastion_security_group_id
+  public_key_path          = var.public_key_path
+  subnets_groups           = module.network.subnets_groups
+}

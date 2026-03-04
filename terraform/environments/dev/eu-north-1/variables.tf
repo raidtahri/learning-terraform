@@ -79,4 +79,20 @@ variable "ami_name_pattern" {
   type = string
 }
 
+variable "jenkins_instances" {
+  type = map(object({
+    instance_type        = string
+    subnet_role          = string
+    subnet_az            = string
+    iam_instance_profile = optional(string)
+    script_name          = optional(string)
+    extra_tags           = optional(map(string), {})
+  }))
+}
+variable "jenkins_ami_owners" {
+  type = list(string)
+}
 
+variable "jenkins_ami_name_pattern" {
+  type = string
+}
