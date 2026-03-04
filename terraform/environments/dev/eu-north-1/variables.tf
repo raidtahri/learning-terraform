@@ -96,3 +96,9 @@ variable "jenkins_ami_owners" {
 variable "jenkins_ami_name_pattern" {
   type = string
 }
+
+variable "root_volume_size" {
+  description = "Size of the root EBS volume in GB"
+  type        = number
+  default     = 30
+}

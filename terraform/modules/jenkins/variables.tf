@@ -42,4 +42,9 @@ variable "subnets_groups" {
   type        = map(map(string))
 }
 
+variable "root_volume_size" {
+  description = "Size of the root EBS volume in GB"
+  type        = number
+  default     = 30
+}
 

@@ -50,4 +50,5 @@ module "jenkins" {
   bastion_sg_id            = module.compute.bastion_security_group_id
   public_key_path          = var.public_key_path
   subnets_groups           = module.network.subnets_groups
+  root_volume_size         = var.root_volume_size
 }

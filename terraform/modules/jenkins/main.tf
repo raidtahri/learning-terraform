@@ -27,7 +27,7 @@ resource "aws_security_group" "this" {
 
   tags = merge(
     {
-      Name = "${var.full_name}-jenkins-sg"    },
+    Name = "${var.full_name}-jenkins-sg" },
     var.base_tags
   )
 }
@@ -73,6 +73,10 @@ resource "aws_instance" "jenkins" {
   key_name               = aws_key_pair.this.key_name
   /*or simply key_name   = "myapp-key" */
   user_data = each.value.script_name != null ? file("${path.module}/scripts/${each.value.script_name}") : null
+  root_block_device {
+    volume_size = var.root_volume_size
+    volume_type = "gp3"
+  }
   lifecycle {
     create_before_destroy = true
     ignore_changes        = [ami]
